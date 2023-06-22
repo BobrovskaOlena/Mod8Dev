@@ -4,16 +4,18 @@ import javax.servlet.http.HttpFilter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.TimeZone;
 
 @WebFilter("/time")
 public class TimeZoneValidateFilter extends HttpFilter {
     @Override
-    protected void doFilter(HttpServletRequest req, HttpServletResponse resp, FilterChain chain) throws IOException, ServletException {
+    protected void doFilter(HttpServletRequest req, HttpServletResponse resp, FilterChain chain)
+            throws IOException, ServletException {
         String timeZoneParam = req.getParameter("timezone");
 
         if (timeZoneParam == null || timeZoneParam.isEmpty()) {
-            timeZoneParam = "UTC+3";
-        } else if (!timeZoneParam.matches("^UTC([01]?\\d|2[0-3])(\\+|-)[0-9]{1,2}$")) {
+            timeZoneParam = TimeZone.getDefault().getID();
+        } else if (!timeZoneParam.matches("^UTC([+-])(0?[0-9]|1[0-9]|2[0-3])$")) {
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid timezone");
             return;
         }
@@ -22,6 +24,9 @@ public class TimeZoneValidateFilter extends HttpFilter {
         chain.doFilter(req, resp);
     }
 }
+
+
+
 
 
 
