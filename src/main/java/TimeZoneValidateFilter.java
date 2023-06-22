@@ -15,17 +15,38 @@ public class TimeZoneValidateFilter extends HttpFilter {
 
         if (timeZoneParam == null || timeZoneParam.isEmpty()) {
             timeZoneParam = TimeZone.getDefault().getID();
-        } else if (!timeZoneParam.matches("^UTC([+-])(0?[0-9]|1[0-9]|2[0-3])$")) {
-            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid timezone");
+        } else if (timeZoneParam.equals("UTC")) {
+            timeZoneParam = TimeZone.getDefault().getID();
+        } else if (!isValidTimeZone(timeZoneParam)) {
+            resp.setStatus(400);
+            resp.getWriter().write("Invalid timezone");
             return;
         }
 
         req.setAttribute("timezone", timeZoneParam);
         chain.doFilter(req, resp);
     }
+
+    private boolean isValidTimeZone(String timeZoneParam) {
+        if (timeZoneParam.length() < 4 || !timeZoneParam.startsWith("UTC")) {
+            return false;
+        }
+
+        char sign = timeZoneParam.charAt(3);
+        String offset = timeZoneParam.substring(4);
+
+        if (sign == '+' || sign == '-') {
+            try {
+                int offsetHours = Integer.parseInt(offset);
+                return offsetHours >= 0 && offsetHours <= 23;
+            } catch (NumberFormatException e) {
+                return false;
+            }
+        }
+
+        return true;
+    }
 }
-
-
 
 
 
